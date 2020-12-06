@@ -1,7 +1,6 @@
 package com.jadhavrupesh22.suhbat.utils
 
 import android.app.Application
-import android.content.Context
 
 object GetTimeAgo : Application() {
     private const val SECOND_MILLIS = 1000

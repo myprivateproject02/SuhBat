@@ -10,9 +10,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.preferencesKey
+import androidx.datastore.preferences.createDataStore
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.snackbar.Snackbar
@@ -23,6 +29,9 @@ import com.jadhavrupesh22.suhbat.databinding.FragmentSignUpBinding
 import com.jadhavrupesh22.suhbat.model.User
 import com.jadhavrupesh22.suhbat.ui.home.HomeActivity
 import com.jadhavrupesh22.suhbat.viewmodel.AuthViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
@@ -30,7 +39,7 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
     lateinit var binding: FragmentSignUpBinding
     private var fragmentSignUpBinding: FragmentSignUpBinding? = null
     var thiscontext: Context? = null
-
+    lateinit var dataStore: DataStore<Preferences>
     //    val authViewModel: AuthViewModel by viewModels()
     lateinit var authViewModel: AuthViewModel
 
@@ -49,8 +58,11 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
     ): View? {
         thiscontext = container?.getContext()
         authViewModel = ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
+        dataStore = requireActivity().createDataStore(name = "settings")
+
         return super.onCreateView(inflater, container, savedInstanceState)
     }
+
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,23 +105,6 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
                 } else {
                     binding.progressBar.visibility = View.VISIBLE
                     val user = User(username = username, password = password, emailId = emaiId)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     authViewModel.signUp(user)
                         .observe(this.viewLifecycleOwner, Observer { isRegister ->
                             if (isRegister) {
@@ -119,22 +114,18 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
                                         if (!task.isSuccessful) {
                                             return@OnCompleteListener
                                         }
-                                        // Get new FCM registration token
                                         val token = task.result
                                         user.tokenId = token.toString()
-
-                                        authViewModel.addUserData(user).observe(
-                                            this.viewLifecycleOwner,
-                                            Observer { isAdded ->
+                                        authViewModel.addUserData(user).observe(this.viewLifecycleOwner, Observer { isAdded ->
                                                 if (isAdded) {
                                                     binding.progressBar.visibility = View.INVISIBLE
-
-                                                    val home = Intent(
-                                                        requireContext(),
-                                                        HomeActivity::class.java
-                                                    )
-                                                    startActivity(home)
-                                                    requireActivity().finish()
+                                                    lifecycleScope.launch {
+                                                        save("isLogin", true)
+                                                    }.also {
+                                                        val home = Intent(requireContext(), HomeActivity::class.java)
+                                                        startActivity(home)
+                                                        requireActivity().finish()
+                                                    }
                                                     Toast.makeText(
                                                         requireContext(),
                                                         "Registration successfull",
@@ -163,31 +154,7 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-
-//            if (!authViewModel.allUsers.value.isNullOrEmpty()) {
-//                Snackbar.make(
-//                    view,
-//                    "List Is Not Empty",
-//                    Snackbar.LENGTH_SHORT
-//                ).show()
-//                authViewModel.allUsers.value?.forEach { user ->
-//                    Log.e(TAG, "onViewCreated: " + user.toString())
-//                }
-//            } else {
-//                Snackbar.make(
-//                    view,
-//                    "List Is Empty",
-//                    Snackbar.LENGTH_SHORT
-//                ).show()
-//            }
-
-
         }
-
-
-//
-
-
         binding.signIn.setOnClickListener {
             val action = SignUpFragmentDirections.actionSignUpFragmentToLoginFragment()
             findNavController().navigate(action)
@@ -197,5 +164,12 @@ class SignUpFragment : Fragment(R.layout.fragment_sign_up) {
 
     }
 
+
+    private suspend fun save(key: String, value: Boolean) {
+        val dataStoreKey = preferencesKey<Boolean>(key)
+        dataStore.edit { settings ->
+            settings[dataStoreKey] = value
+        }
+    }
 
 }

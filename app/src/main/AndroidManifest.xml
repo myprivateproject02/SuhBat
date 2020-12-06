@@ -16,10 +16,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SuhBat">
-        <activity android:name=".ui.auth.AuthActivity"></activity>
+        <activity
+            android:name=".ui.Profile.ProfileActivity"
+            android:label="@string/title_activity_profile"
+            android:theme="@style/Theme.SuhBat.NoActionBar"></activity>
+        <activity android:name=".ui.auth.AuthActivity" />
         <activity android:name=".ui.home.HomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

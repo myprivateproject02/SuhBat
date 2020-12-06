@@ -18,6 +18,9 @@ class AuthViewModel @ViewModelInject constructor(
     private var _isRegister = MutableLiveData<Boolean>()
     var isRegister: LiveData<Boolean> = _isRegister
 
+    private var _isLogin = MutableLiveData<Boolean>()
+    var isLogin: LiveData<Boolean> = _isLogin
+
     private var _isDataAdded = MutableLiveData<Boolean>()
     var isDataAdded: LiveData<Boolean> = _isDataAdded
 
@@ -55,9 +58,9 @@ class AuthViewModel @ViewModelInject constructor(
 
     fun signIn(user: User): LiveData<Boolean> {
         viewModelScope.launch {
-            isRegister = authRepository.signIn(user)
+            isLogin = authRepository.signIn(user)
         }
-        return isRegister
+        return isLogin
     }
 
 

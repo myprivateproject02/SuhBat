@@ -6,12 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.jadhavrupesh22.suhbat.R
 import com.jadhavrupesh22.suhbat.model.User
 import com.jadhavrupesh22.suhbat.utils.GetTimeAgo
 import kotlinx.android.synthetic.main.single_user_layout.view.*
-import java.text.SimpleDateFormat
-import java.util.*
 
 class FriendsAdapter(
     var allUser: List<User>,
@@ -32,9 +31,13 @@ class FriendsAdapter(
             username.text = allUser[position].username
             val time = GetTimeAgo.getTimeAgo(allUser[position].lastSeen.seconds)
             lastSeen.text = time
+            val requestOptions = RequestOptions()
+            requestOptions.placeholder(R.drawable.user)
+            requestOptions.error(R.drawable.user)
             Glide.with(context)
                 .load(allUser[position].profileUrl)
-                .into(profileImg);
+                .apply(requestOptions)
+                .into(profileImg)
         }
     }
 
@@ -51,13 +54,13 @@ class FriendsAdapter(
         override fun onClick(v: View?) {
             val position = adapterPosition
             if (position != RecyclerView.NO_POSITION) {
-                listener.onItemClick(position)
+                listener.onItemClick(position,allUser[position])
             }
         }
     }
 
     interface OnItemClickListener {
-        fun onItemClick(position: Int)
+        fun onItemClick(position: Int,user: User)
     }
 
 }

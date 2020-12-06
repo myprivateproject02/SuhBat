@@ -9,4 +9,10 @@ object Constant {
     const val CHANNEL_ID = "Channel ID"
     const val CHANNEL_NAME = "Channel Name"
     const val MAX_PROGRESS = 100
+
+
+    const val BASE_URL = "https://fcm.googleapis.com"
+    const val SERVER_KEY = "ENTER SERVER KEY HERE"
+    const val CONTENT_TYPE = "application/json"
+
 }

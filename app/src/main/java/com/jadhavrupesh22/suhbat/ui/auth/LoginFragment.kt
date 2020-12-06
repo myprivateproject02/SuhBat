@@ -10,6 +10,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesKey
+import androidx.datastore.preferences.createDataStore
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -34,7 +35,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private var fragmentLoginBinding: FragmentLoginBinding? = null
     lateinit var authViewModel: AuthViewModel
     var mAuth: FirebaseAuth = FirebaseAuth.getInstance()
-    private lateinit var dataStore: DataStore<Preferences>
+    lateinit var dataStore: DataStore<Preferences>
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,25 +46,22 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             val emaiId: String = binding.textInputEmail.getEditText()?.text.toString()
             val password: String = binding.textInputPassword.getEditText()?.text.toString()
             if (!emaiId.isEmpty() && !password.isEmpty()) {
-                if (!(!TextUtils.isEmpty(emaiId) && Patterns.EMAIL_ADDRESS.matcher(emaiId)
-                        .matches())
-                ) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Please Enter Valide Email Id",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                if (!(!TextUtils.isEmpty(emaiId) && Patterns.EMAIL_ADDRESS.matcher(emaiId).matches())) {
+                    Toast.makeText(requireContext(), "Please Enter Valide Email Id", Toast.LENGTH_SHORT).show()
                 } else {
                     binding.progressBar.visibility = View.VISIBLE
                     val user = User(password = password, emailId = emaiId)
                     authViewModel.signIn(user)
-                        .observe(this.viewLifecycleOwner, Observer { isRegister ->
-                            if (isRegister) {
-                                lifecycleScope.launch { save("isLogin", true) }
+                        .observe(this.viewLifecycleOwner, Observer { isLogin ->
+                            if (isLogin) {
                                 binding.progressBar.visibility = View.INVISIBLE
-                                val home = Intent(requireContext(), HomeActivity::class.java)
-                                startActivity(home)
-                                requireActivity().finish()
+                                lifecycleScope.launch {
+                                    save("isLogin", true)
+                                }.also {
+                                    val home = Intent(requireContext(), HomeActivity::class.java)
+                                    startActivity(home)
+                                    requireActivity().finish()
+                                }
                                 Toast.makeText(requireContext(), "Login successfull", Toast.LENGTH_SHORT).show()
                             } else {
                                 lifecycleScope.launch { save("isLogin", false) }
@@ -92,6 +90,11 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
     }
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        dataStore = requireActivity().createDataStore(name = "settings")
+    }
 
     private suspend fun save(key: String, value: Boolean) {
         val dataStoreKey = preferencesKey<Boolean>(key)
